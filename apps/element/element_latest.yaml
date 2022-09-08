@@ -31,3 +31,4 @@ volumes:
     name: $APP_VOLUME_NAME
   fractal-link-volume:
     external: true
+    name: $LINK_VOLUME_NAME
