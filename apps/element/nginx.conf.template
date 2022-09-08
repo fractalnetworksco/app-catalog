@@ -1,0 +1,48 @@
+server {
+    listen       80;
+    listen  [::]:80;
+    server_name  $LINK_DOMAIN_DEFAULT;
+
+    #access_log  /var/log/nginx/host.access.log  main;
+
+	location /.well-known/matrix/server {
+        add_header Content-Type application/json;
+		return 200 '{"m.server":"$LINK_DOMAIN_DEFAULT:443"}';
+	}
+
+    # element-web
+    # FIXME it is bad practice to serve element web from same domain as
+    # the homeserver
+	location / {
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+		#try_files $uri $uri/ =404;
+		proxy_pass http://element:80;
+		proxy_set_header Host            $host;
+		proxy_set_header X-Forwarded-For $remote_addr;
+	}
+
+    # pass traffic to synapse
+    location /_matrix {
+                proxy_pass http://synapse:8008;
+                proxy_set_header Host            $host;
+                proxy_set_header X-Forwarded-For $remote_addr;
+    }
+
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    #location ~ /\.ht {
+    #    deny  all;
+    #}
+}

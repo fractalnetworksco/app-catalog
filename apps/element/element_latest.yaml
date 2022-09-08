@@ -1,0 +1,33 @@
+version: '3.9'
+services:
+    nginx:
+        image: fractalnetworks/element-nginx-proxy:latest
+        environment:
+            LINK_DOMAIN_DEFAULT: $LINK_DOMAIN_DEFAULT
+    element:
+        image: vectorim/element-web:latest
+    synapse:
+        image: matrixdotorg/synapse:latest
+        environment:
+            SYNAPSE_SERVER_NAME: $LINK_DOMAIN_DEFAULT
+            SYNAPSE_REPORT_STATS: "no"
+        entrypoint: "bash -c 'python /start.py generate; python /start.py'"
+        volumes:
+            - fractal-app-volume:/data
+    link:
+      image: fractalnetworks/link:latest
+      environment:
+        LINK: $LINK_DOMAIN_DEFAULT
+        TOKEN: $LINK_TOKEN_DEFAULT
+        EXPOSE: nginx:80
+        FRACTAL_API: https://gateway.fractalnetworks.co
+      cap_add:
+        - NET_ADMIN
+      volumes:
+        - fractal-link-volume:/root/.local/share/caddy
+volumes:
+  fractal-app-volume:
+    external: true
+    name: $APP_VOLUME_NAME
+  fractal-link-volume:
+    external: true
